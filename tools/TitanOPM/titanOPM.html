@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TitanOPM - Offline Password Manager | SNUGNET</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #141414;
+            --accent-primary: #ffffff;
+            --accent-cyan: #7dd3fc;
+            --accent-cyan-dark: #0891b2;
+            --accent-secondary: #6b7280;
+            --accent-gunmetal: #4a5568;
+            --accent-steel: #8b949e;
+            --accent-dark: #2d3748;
+            --text-main: #ffffff;
+            --text-dim: #9ca3af;
+            --border: #374151;
+            --shadow: rgba(0, 0, 0, 0.8);
+            --glow-cyan: rgba(125, 211, 252, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Enhanced metallic vault pattern background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(0deg, rgba(75, 85, 99, 0.03) 0px, transparent 1px, transparent 2px, rgba(75, 85, 99, 0.03) 3px),
+                repeating-linear-gradient(90deg, rgba(75, 85, 99, 0.03) 0px, transparent 1px, transparent 2px, rgba(75, 85, 99, 0.03) 3px),
+                radial-gradient(ellipse at top, rgba(125, 211, 252, 0.05) 0%, transparent 50%),
+                linear-gradient(180deg, #0a0a0a 0%, #141414 50%, #0a0a0a 100%);
+            background-size: 80px 80px, 80px 80px, 100% 100%, 100% 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Enhanced vault door corner bolts */
+        .container::before,
+        .container::after {
+            content: '';
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, var(--accent-steel) 0%, var(--accent-gunmetal) 50%, var(--bg-main) 100%);
+            border: 2px solid var(--accent-gunmetal);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.5), 
+                0 2px 8px rgba(255, 255, 255, 0.1),
+                0 0 20px rgba(125, 211, 252, 0.1);
+            z-index: 10;
+        }
+
+        .container::before {
+            top: 2rem;
+            left: 2rem;
+        }
+
+        .container::after {
+            top: 2rem;
+            right: 2rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .logo-img {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 0 20px var(--glow-cyan)) drop-shadow(0 4px 12px rgba(125, 211, 252, 0.3));
+            animation: logoGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes logoGlow {
+            0%, 100% {
+                filter: drop-shadow(0 0 20px var(--glow-cyan)) drop-shadow(0 4px 12px rgba(125, 211, 252, 0.3));
+            }
+            50% {
+                filter: drop-shadow(0 0 30px var(--glow-cyan)) drop-shadow(0 4px 16px rgba(125, 211, 252, 0.5));
+            }
+        }
+
+        .back-link {
+            display: inline-block;
+            color: var(--accent-steel);
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background: var(--bg-card);
+        }
+
+        .back-link:hover {
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            background: var(--bg-secondary);
+            box-shadow: 0 0 15px rgba(125, 211, 252, 0.2);
+        }
+
+        h1 {
+            font-family: 'Teko', sans-serif;
+            font-size: clamp(3rem, 7vw, 5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 
+                2px 2px 0px var(--accent-gunmetal),
+                0 0 30px var(--glow-cyan);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            animation: titleShine 4s ease-in-out infinite;
+        }
+
+        @keyframes titleShine {
+            0%, 100% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.2);
+            }
+        }
+
+        .subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--accent-cyan);
+            font-size: 1.1rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            text-shadow: 0 0 10px var(--glow-cyan);
+        }
+
+        .tagline {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Enhanced warning banner */
+        .warning-box {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+            border: 3px solid var(--accent-gunmetal);
+            border-radius: 4px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+            position: relative;
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 4px 12px var(--shadow),
+                0 0 20px rgba(125, 211, 252, 0.1);
+        }
+
+        .warning-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+        }
+
+        .warning-box h3 {
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .warning-box p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Enhanced download section */
+        .download-section {
+            background: linear-gradient(145deg, var(--bg-secondary), var(--bg-card));
+            border: 3px solid var(--accent-gunmetal);
+            border-radius: 4px;
+            padding: 3rem;
+            text-align: center;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+            box-shadow: 
+                inset 0 2px 0 rgba(255, 255, 255, 0.05),
+                0 8px 24px var(--shadow),
+                0 0 30px rgba(125, 211, 252, 0.1);
+        }
+
+        .download-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                var(--accent-gunmetal), 
+                var(--accent-cyan), 
+                var(--accent-gunmetal));
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .download-section::after {
+            content: '🔒';
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            opacity: 0.1;
+        }
+
+        .download-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            filter: grayscale(100%) brightness(0.9) drop-shadow(0 0 10px var(--glow-cyan));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .download-section h2 {
+            font-family: 'Teko', sans-serif;
+            color: var(--text-main);
+            font-size: 2.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .download-section p {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-cyan-dark), #0e7490);
+            color: var(--text-main);
+            padding: 1.2rem 3rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            border: 2px solid var(--accent-cyan);
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 4px 12px var(--shadow),
+                0 0 20px var(--glow-cyan);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .download-btn:hover::before {
+            left: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-cyan);
+            background: linear-gradient(135deg, #0891b2, var(--accent-cyan-dark));
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                0 6px 20px var(--shadow),
+                0 0 30px var(--glow-cyan);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Tech specs banner */
+        .tech-specs {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .spec-icon {
+            color: var(--accent-cyan);
+        }
+
+        /* Instructions section */
+        .instructions-section {
+            background: linear-gradient(145deg, var(--bg-card), var(--bg-secondary));
+            border: 3px solid var(--accent-dark);
+            border-radius: 4px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+            box-shadow: 
+                inset 0 2px 0 rgba(255, 255, 255, 0.05),
+                0 4px 12px var(--shadow);
+        }
+
+        .instructions-section h2 {
+            font-family: 'Teko', sans-serif;
+            color: var(--text-main);
+            font-size: 2.2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--accent-gunmetal);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .step {
+            margin-bottom: 2rem;
+            padding-left: 3rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            transform: translateX(5px);
+        }
+
+        .step-number {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-cyan-dark));
+            color: var(--bg-main);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                0 2px 4px var(--shadow),
+                0 0 10px rgba(125, 211, 252, 0.3);
+            border: 1px solid var(--accent-cyan);
+        }
+
+        .step h3 {
+            color: var(--text-main);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step p {
+            color: var(--text-dim);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .step code {
+            background: var(--bg-main);
+            color: var(--accent-cyan);
+            padding: 0.2rem 0.5rem;
+            border-radius: 2px;
+            font-size: 0.9rem;
+            border: 1px solid var(--accent-dark);
+        }
+
+        /* Features section */
+        .features-section {
+            background: linear-gradient(145deg, var(--bg-secondary), var(--bg-card));
+            border: 3px solid var(--accent-gunmetal);
+            border-radius: 4px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            animation: fadeInUp 0.8s ease-out 0.5s both;
+            box-shadow: 
+                inset 0 2px 0 rgba(255, 255, 255, 0.05),
+                0 4px 12px var(--shadow);
+        }
+
+        .features-section h2 {
+            font-family: 'Teko', sans-serif;
+            color: var(--text-main);
+            font-size: 2.2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature {
+            display: flex;
+            gap: 1rem;
+            align-items: start;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--accent-dark);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 
+                0 4px 12px var(--shadow),
+                0 0 20px rgba(125, 211, 252, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+            min-width: 2rem;
+            filter: grayscale(100%);
+        }
+
+        .feature-content h3 {
+            color: var(--text-main);
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .feature-content p {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* Critical warning box */
+        .critical-warning {
+            border-color: #dc2626 !important;
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 4px 12px var(--shadow),
+                0 0 20px rgba(220, 38, 38, 0.2) !important;
+        }
+
+        .critical-warning::before {
+            background: linear-gradient(90deg, transparent, #dc2626, transparent) !important;
+        }
+
+        .critical-warning h3 {
+            color: #fca5a5;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        footer p {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .snugnet-badge {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--accent-cyan);
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .download-section,
+            .instructions-section,
+            .features-section {
+                padding: 1.5rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .logo-img {
+                width: 80px;
+                height: 80px;
+            }
+
+            h1 {
+                font-size: 3rem;
+            }
+
+            .tech-specs {
+                gap: 1rem;
+            }
+
+            .container::before,
+            .container::after {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../index.html" class="back-link">← Back to SNUGNET</a>
+            <div class="logo-container">
+                <img src="titan.PNG" alt="Titan Logo" class="logo-img">
+            </div>
+            <h1>TITANOPM</h1>
+            <div class="subtitle">Maximum Security Protocol</div>
+            <p class="tagline">
+                Military-grade offline password manager. Zero cloud sync. Zero trust. Maximum security.
+            </p>
+        </header>
+
+        <div class="warning-box">
+            <h3>⚠ SECURITY NOTICE</h3>
+            <p>
+                This is a LOCAL-ONLY password manager. No data is ever sent to the internet. 
+                Keep your vault file backed up securely. If you lose it, your passwords are gone forever.
+            </p>
+        </div>
+
+        <div class="download-section">
+            <div class="download-icon">🔐</div>
+            <h2>Download TitanOPM</h2>
+            <p>Portable desktop application for Windows. No installation required.</p>
+            <a href="TitanOPM.zip" download class="download-btn">⬇ Download ZIP</a>
+            
+            <div class="tech-specs">
+                <div class="spec-item">
+                    <span class="spec-icon">📦</span>
+                    <span>Version: 1.0</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-icon">💻</span>
+                    <span>Windows 7+</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-icon">🔐</span>
+                    <span>AES-256 Encryption</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-icon">📴</span>
+                    <span>100% Offline</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions-section">
+            <h2>📋 Installation Instructions</h2>
+
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Download the ZIP file</h3>
+                <p>Click the download button above to get the <code>TitanOPM_v1.0.zip</code> file. Save it somewhere you'll remember.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Extract the files</h3>
+                <p>Right-click the ZIP file and select "Extract All..." or use your preferred extraction tool (7-Zip, WinRAR, etc.). Extract to a permanent location like <code>C:\Programs\TitanOPM\</code></p>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Run the application</h3>
+                <p>Open the extracted folder and double-click <code>TitanOPM.exe</code> to launch the password manager.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>Create your master password</h3>
+                <p>On first launch, you'll be prompted to create a master password. <strong>REMEMBER THIS PASSWORD</strong> - there is no recovery option. Make it strong but memorable.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-number">5</div>
+                <h3>Start storing passwords</h3>
+                <p>You're all set! Add your passwords, notes, and sensitive data. Everything is encrypted locally on your machine.</p>
+            </div>
+        </div>
+
+        <div class="features-section">
+            <h2>🛡️ Security Features</h2>
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <div class="feature-content">
+                        <h3>End-to-End Encryption</h3>
+                        <p>AES-256 encryption. Your data is encrypted before it touches disk.</p>
+                    </div>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">📴</div>
+                    <div class="feature-content">
+                        <h3>100% Offline</h3>
+                        <p>No internet connection required. No cloud sync. No phone home.</p>
+                    </div>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🔐</div>
+                    <div class="feature-content">
+                        <h3>Master Password</h3>
+                        <p>Single master password protects your entire vault. No backdoors.</p>
+                    </div>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">💾</div>
+                    <div class="feature-content">
+                        <h3>Portable</h3>
+                        <p>No installation needed. Run from USB drive or any location.</p>
+                    </div>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🔄</div>
+                    <div class="feature-content">
+                        <h3>Backup Friendly</h3>
+                        <p>Single vault file. Easy to backup to external drives or encrypted USB.</p>
+                    </div>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🚫</div>
+                    <div class="feature-content">
+                        <h3>Zero Trust</h3>
+                        <p>We can't see your data. Nobody can. That's the point.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="warning-box critical-warning">
+            <h3>🔥 CRITICAL BACKUP WARNING</h3>
+            <p>
+                <strong>BACK UP YOUR VAULT FILE REGULARLY!</strong> Store backups on external drives, encrypted USBs, or offline storage. 
+                If your hard drive fails or vault file corrupts, your passwords are permanently lost. There is NO password recovery.
+            </p>
+        </div>
+
+        <footer>
+            <p>SNUGNET // TitanOPM // Maximum Security Protocol</p>
+            <div class="snugnet-badge">Secured by SNUGNET</div>
+            <p style="margin-top: 1rem;">For educational and personal security use only</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNUGNET</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #000000;
+            --surface: #0d0d0d;
+            --surface-light: #1a1a1a;
+            --border: rgba(255, 255, 255, 0.06);
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --text-tertiary: #555555;
+            --gradient-blue: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-green: linear-gradient(135deg, #0ba360 0%, #3cba92 100%);
+            --gradient-pink: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-purple: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Gradient orbs background */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: #667eea;
+            top: -100px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: #f5576c;
+            bottom: -100px;
+            right: -100px;
+        }
+
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: #0ba360;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Grid pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 40px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--text-primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 120px 0 80px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 700;
+            letter-spacing: -3px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #666666 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto 50px;
+            line-height: 1.8;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 40px;
+            background: var(--text-primary);
+            color: var(--bg);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .hero-cta:hover::before {
+            left: 100%;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Stats Bar */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            background: var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 80px 0;
+        }
+
+        .stat {
+            background: var(--surface);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Section */
+        .section {
+            padding: 80px 0;
+            animation: fadeIn 1s ease;
+        }
+
+        .section-header {
+            margin-bottom: 60px;
+        }
+
+        .section-label {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .section-description {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            line-height: 1.8;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+        }
+
+        /* Premium Cards */
+        .card {
+            position: relative;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 60px 50px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        /* Card gradient overlay */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.03) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        /* Card shine effect */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .card:hover::after {
+            transform: translateX(0);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Card gradient accents */
+        .card-accent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .card:hover .card-accent {
+            opacity: 1;
+        }
+
+        .card:nth-child(1) .card-accent { background: var(--gradient-blue); }
+        .card:nth-child(2) .card-accent { background: var(--gradient-green); }
+        #snugglebug-card .card-accent { background: var(--gradient-pink); }
+        #snugasabot-card .card-accent { background: var(--gradient-purple); }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card:nth-child(1) .card-icon { background: rgba(102, 126, 234, 0.1); }
+        .card:nth-child(2) .card-icon { background: rgba(11, 163, 96, 0.1); }
+        #snugglebug-card .card-icon { background: rgba(245, 87, 108, 0.1); }
+        #snugasabot-card .card-icon { background: rgba(79, 172, 254, 0.1); }
+
+        .card-category {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card:nth-child(1) .card-category { color: #667eea; }
+        .card:nth-child(2) .card-category { color: #0ba360; }
+        #snugglebug-card .card-category { color: #f5576c; }
+        #snugasabot-card .card-category { color: #4facfe; }
+
+        .card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card p {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 2;
+            transition: gap 0.3s ease;
+        }
+
+        .card-link:hover {
+            gap: 15px;
+        }
+
+        .card-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .card-link:hover .card-arrow {
+            transform: translateX(4px);
+        }
+
+        /* Floating mascot */
+        .mascot-wrapper {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            z-index: 1000;
+        }
+
+        .mascot {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: float 6s ease-in-out infinite;
+            display: block;
+        }
+
+        .mascot:hover {
+            transform: scale(1.1) rotate(5deg);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 60px 0;
+            margin-top: 120px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .footer-logo {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-social a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--surface-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .footer-social a:hover {
+            background: var(--text-primary);
+            color: var(--bg);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+
+            .hero {
+                padding: 80px 0 60px;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 40px 30px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .mascot-wrapper {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .mascot {
+                width: 70px;
+                height: 70px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-padding-top: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="container">
+        <nav>
+            <div class="nav-logo">SNUGNET</div>
+            <ul class="nav-links">
+                <li><a href="#tools">Tools</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="https://github.com/orcatane" target="_blank">GitHub</a></li>
+                <li><a href="https://twitter.com/snugnet" target="_blank">Twitter</a></li>
+            </ul>
+        </nav>
+
+        <section class="hero">
+            <h1 class="hero-title">SNUGNET</h1>
+            <p class="hero-subtitle">A curated collection of powerful utilities and creative projects designed for developers, creators, and digital enthusiasts.</p>
+            <a href="#tools" class="hero-cta">
+                Explore Tools
+                <span>↓</span>
+            </a>
+        </section>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number">02</div>
+                <div class="stat-label">Active Tools</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">01</div>
+                <div class="stat-label">Live Projects</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Uptime</div>
+            </div>
+        </div>
+
+        <section id="tools" class="section">
+            <div class="section-header">
+                <span class="section-label">🔧 Tools</span>
+                <h2 class="section-title">Tools</h2>
+            </div>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-accent"></div>
+                    <div class="card-icon">🔒</div>
+                    <div class="card-category">Security</div>
+                    <h3>TitanOPM</h3>
+                    <p>Offline password manager with military-grade encryption. Securely store, organize, and manage all your credentials with zero cloud dependency.</p>
+                    <a href="tools/TitanOPM/titanOPM.html" class="card-link">
+                        Launch Tool
+                        <span class="card-arrow">→</span>
+                    </a>
+                </div>
+                <div class="card">
+                    <div class="card-accent"></div>
+                    <div class="card-icon">🌐</div>
+                    <div class="card-category">Network</div>
+                    <h3>IPHUNTER</h3>
+                    <p>Advanced IP geolocation and tracking tool. Analyze IP addresses with detailed geographic data, ISP information, and network insights.</p>
+                    <a href="tools/iphunter.html" class="card-link">
+                        Launch Tool
+                        <span class="card-arrow">→</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="section">
+            <div class="section-header">
+                <span class="section-label">💀 Projects</span>
+                <h2 class="section-title">Projects</h2>
+            </div>
+            <div class="grid">
+                <div class="card" id="snugasabot-card">
+                    <div class="card-accent"></div>
+                    <div class="card-icon">🤖</div>
+                    <div class="card-category">Automation</div>
+                    <h3>Snugasabot</h3>
+                    <p>AI-powered social media automation platform. Schedule posts, analyze engagement, and optimize your content strategy effortlessly.</p>
+                    <a href="https://twitter.com/snugasabot" target="_blank" class="card-link">
+                        View Project
+                        <span class="card-arrow">→</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-logo">SNUGNET</div>
+                <ul class="footer-links">
+                    <li><a href="#tools">Tools</a></li>
+                    <li><a href="#projects">Projects</a></li>
+                    <li><a href="https://github.com/orcatane" target="_blank">GitHub</a></li>
+                    <li><a href="https://twitter.com/snugnet" target="_blank">Twitter</a></li>
+                </ul>
+                <div class="footer-social">
+                    <a href="https://github.com/orcatane" target="_blank" aria-label="GitHub">⚡</a>
+                    <a href="https://twitter.com/snugnet" target="_blank" aria-label="Twitter">𝕏</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 SNUGNET. All rights reserved.</p>
+                <p>All systems operational</p>
+            </div>
+        </footer>
+    </div>
+
+    <div class="mascot-wrapper">
+        <a href="https://twitter.com/snugnet" target="_blank">
+            <img src="images/mascot.jpg" alt="Mascot" class="mascot">
+        </a>
+    </div>
+
+    <script>
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Parallax effect on mouse move
+        let mouseX = 0;
+        let mouseY = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX / window.innerWidth - 0.5;
+            mouseY = e.clientY / window.innerHeight - 0.5;
+        });
+
+        function animateOrbs() {
+            const orbs = document.querySelectorAll('.orb');
+            orbs.forEach((orb, index) => {
+                const speed = (index + 1) * 20;
+                const x = mouseX * speed;
+                const y = mouseY * speed;
+                orb.style.transform = `translate(${x}px, ${y}px)`;
+            });
+            requestAnimationFrame(animateOrbs);
+        }
+
+        animateOrbs();
+
+        // Card tilt effect
+        const cards = document.querySelectorAll('.card');
+        
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        });
+
+        // Fade in on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card, .section').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
