@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snugglebug - Network Security Monitor | SNUGNET</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-terminal: #0a0a0a;
+            --bg-chrome: #1a1a1a;
+            --chrome-light: #2a2a2a;
+            --chrome-border: #3a3a3a;
+            --chrome-shine: #6a6a6a;
+            --text-primary: #e0e0e0;
+            --text-dim: #808080;
+            --accent-chrome: #c0c0c0;
+            --accent-glow: rgba(192, 192, 192, 0.3);
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Share Tech Mono', monospace;
+            background: var(--bg-terminal);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Scanline effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15) 0px,
+                transparent 1px,
+                transparent 2px,
+                rgba(0, 0, 0, 0.15) 3px
+            );
+            pointer-events: none;
+            z-index: 999;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+
+        /* Chrome grid background */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(192, 192, 192, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(192, 192, 192, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Terminal header */
+        .terminal-header {
+            background: linear-gradient(180deg, var(--chrome-border) 0%, var(--bg-chrome) 100%);
+            border: 2px solid var(--chrome-border);
+            border-radius: 8px 8px 0 0;
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .terminal-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .terminal-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--chrome-shine);
+            border: 1px solid var(--chrome-border);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .terminal-title {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Main terminal */
+        .terminal {
+            background: var(--bg-terminal);
+            border: 2px solid var(--chrome-border);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 2rem;
+            box-shadow: 
+                0 8px 24px rgba(0, 0, 0, 0.5),
+                inset 0 0 100px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: var(--accent-chrome);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--chrome-border);
+            border-radius: 4px;
+            background: rgba(192, 192, 192, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(192, 192, 192, 0.1);
+            border-color: var(--accent-chrome);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* ASCII art logo */
+        .ascii-logo {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            line-height: 1.2;
+            color: var(--accent-chrome);
+            white-space: pre;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px var(--accent-glow);
+            overflow-x: auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-chrome);
+            margin-bottom: 0.5rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .prompt {
+            color: var(--accent-chrome);
+            margin-right: 0.5rem;
+        }
+
+        .command {
+            color: var(--text-primary);
+        }
+
+        /* Info section */
+        .info-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(192, 192, 192, 0.02);
+            border: 1px solid var(--chrome-border);
+            border-radius: 4px;
+        }
+
+        .info-section h2 {
+            font-size: 1.2rem;
+            color: var(--accent-chrome);
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .info-section p {
+            color: var(--text-dim);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        /* Features list */
+        .features {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .features li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--chrome-border);
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .features li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            color: var(--accent-chrome);
+            font-size: 1.2rem;
+        }
+
+        /* Download box */
+        .download-box {
+            background: linear-gradient(135deg, var(--bg-chrome), var(--chrome-light));
+            border: 2px solid var(--chrome-border);
+            border-radius: 8px;
+            padding: 2.5rem;
+            text-align: center;
+            margin: 2rem 0;
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                0 8px 24px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-chrome), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .download-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            filter: grayscale(100%) contrast(1.2);
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--chrome-shine), var(--chrome-border));
+            color: var(--bg-terminal);
+            padding: 1rem 2.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            border: 2px solid var(--accent-chrome);
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                0 4px 12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .download-btn:hover::before {
+            left: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                0 6px 20px rgba(0, 0, 0, 0.6),
+                0 0 20px var(--accent-glow);
+        }
+
+        /* Steps */
+        .steps {
+            margin: 2rem 0;
+        }
+
+        .step {
+            margin-bottom: 1.5rem;
+            padding-left: 2.5rem;
+            position: relative;
+        }
+
+        .step-number {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1.8rem;
+            height: 1.8rem;
+            background: linear-gradient(135deg, var(--chrome-shine), var(--chrome-border));
+            color: var(--bg-terminal);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .step h3 {
+            color: var(--accent-chrome);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .step p {
+            color: var(--text-dim);
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            color: var(--accent-chrome);
+            font-family: 'Share Tech Mono', monospace;
+            border: 1px solid var(--chrome-border);
+        }
+
+        /* Warning box */
+        .warning {
+            background: rgba(255, 50, 50, 0.1);
+            border: 1px solid rgba(255, 50, 50, 0.3);
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 2rem 0;
+            color: var(--text-dim);
+        }
+
+        .warning-title {
+            color: #ff6b6b;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--chrome-border);
+            margin-top: 3rem;
+        }
+
+        /* Blinking cursor */
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background: var(--accent-chrome);
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .terminal {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .ascii-logo {
+                font-size: 0.5rem;
+            }
+
+            .download-box {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <div class="terminal-btn"></div>
+                <div class="terminal-btn"></div>
+                <div class="terminal-btn"></div>
+            </div>
+            <div class="terminal-title">snugnet://snugglebug/</div>
+        </div>
+
+        <div class="terminal">
+            <a href="../../index.html" class="back-link">← BACK TO SNUGNET</a>
+
+            <div class="ascii-logo">
+███████╗███╗   ██╗██╗   ██╗ ██████╗  ██████╗ ██╗     ███████╗██████╗ ██╗   ██╗ ██████╗ 
+██╔════╝████╗  ██║██║   ██║██╔════╝ ██╔════╝ ██║     ██╔════╝██╔══██╗██║   ██║██╔════╝ 
+███████╗██╔██╗ ██║██║   ██║██║  ███╗██║  ███╗██║     █████╗  ██████╔╝██║   ██║██║  ███╗
+╚════██║██║╚██╗██║██║   ██║██║   ██║██║   ██║██║     ██╔══╝  ██╔══██╗██║   ██║██║   ██║
+███████║██║ ╚████║╚██████╔╝╚██████╔╝╚██████╔╝███████╗███████╗██████╔╝╚██████╔╝╚██████╔╝
+╚══════╝╚═╝  ╚═══╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝╚══════╝╚═════╝  ╚═════╝  ╚═════╝ 
+            </div>
+
+            <h1>SNUGGLEBUG</h1>
+            <p class="subtitle">Real-Time Network Security Monitor</p>
+
+            <div class="info-section">
+                <h2>// SYSTEM OVERVIEW</h2>
+                <p>
+                    Snugglebug is a real-time network security monitoring tool designed for continuous surveillance 
+                    of network traffic, intrusion detection, and security analysis. Monitor packets, detect anomalies, 
+                    and analyze network behavior with precision.
+                </p>
+            </div>
+
+            <div class="info-section">
+                <h2>// CORE FEATURES</h2>
+                <ul class="features">
+                    <li>
+                        <span class="feature-icon">▸</span>
+                        <span>Real-time packet capture and analysis</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">▸</span>
+                        <span>Intrusion detection system (IDS) integration</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">▸</span>
+                        <span>Network traffic visualization and logging</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">▸</span>
+                        <span>Protocol analysis (TCP/UDP/ICMP/HTTP/DNS)</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">▸</span>
+                        <span>Anomaly detection and alerting</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">▸</span>
+                        <span>Export reports in multiple formats</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="download-box">
+                <div class="download-icon">📡</div>
+                <h2 style="color: var(--accent-chrome); margin-bottom: 1rem;">DOWNLOAD SNUGGLEBUG</h2>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                    Portable network monitoring suite. No installation required.
+                </p>
+                <a href="Snugglebug.zip" download class="download-btn">⬇ DOWNLOAD</a>
+                <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-dim);">
+                    Version: 1.0 | Windows 10+ | Administrator privileges required
+                </p>
+            </div>
+
+            <div class="info-section">
+                <h2>// INSTALLATION</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <h3>Download Archive</h3>
+                        <p>Download <code>Snugglebug.zip</code> and save to a secure location.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <h3>Extract Files</h3>
+                        <p>Extract the archive to a permanent directory (e.g., <code>C:\Tools\Snugglebug\</code>)</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <h3>Run as Administrator</h3>
+                        <p>Right-click <code>Snugglebug.exe</code> and select "Run as administrator". Network monitoring requires elevated privileges.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <h3>Configure Monitoring</h3>
+                        <p>Select network interfaces to monitor and configure detection rules.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <h3>Begin Surveillance</h3>
+                        <p>Start real-time monitoring. All captured data is logged locally.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="warning">
+                <div class="warning-title">⚠ LEGAL NOTICE</div>
+                <p>
+                    This tool is for authorized network security monitoring only. 
+                    Use on networks you own or have explicit permission to monitor. 
+                    Unauthorized network monitoring may be illegal in your jurisdiction.
+                </p>
+            </div>
+
+            <div class="info-section">
+                <h2>// SYSTEM REQUIREMENTS</h2>
+                <ul class="features">
+                    <li>
+                        <span class="feature-icon">▸</span>
+                        <span>Windows 10 or later</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">▸</span>
+                        <span>Administrator privileges</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">▸</span>
+                        <span>Network adapter with promiscuous mode support</span>
+                    </li>
+                    <li>
+                        <span class="feature-icon">▸</span>
+                        <span>Minimum 4GB RAM recommended</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>SNUGNET // SNUGGLEBUG // NETWORK SECURITY MONITOR</p>
+            <p style="margin-top: 0.5rem;">For authorized security research and network monitoring only</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="https://github.com/orcatane" target="_blank" style="color: var(--accent-chrome); text-decoration: none;">
+                    GitHub: @orcatane
+                </a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
