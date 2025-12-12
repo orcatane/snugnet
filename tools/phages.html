@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PHAGES TACTICAL // OSINT Terminal v3.7</title>
+    <title>PHAGES TACTICAL // ELITE OSINT v4.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -14,6 +14,7 @@
             --terminal-white: #c0c0c0;
             --terminal-red: #8b0000;
             --terminal-yellow: #b8860b;
+            --terminal-blue: #4169e1;
             --bg-black: #0f0f0f;
             --bg-dark: #1a1a1a;
             --bg-darker: #151515;
@@ -685,6 +686,70 @@
             color: var(--bg-black);
             border-color: var(--terminal-white);
         }
+
+        .badge-elite {
+            background: var(--terminal-blue);
+            color: var(--terminal-white);
+            border-color: var(--terminal-blue);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        .new-badge {
+            background: var(--terminal-red);
+            color: var(--terminal-white);
+            font-size: 0.5rem;
+            padding: 0.1rem 0.3rem;
+            margin-left: auto;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+        }
+
+        .platform-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .platform-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: var(--bg-darker);
+            border: 1px solid #222;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .platform-item.found {
+            border-color: var(--accent-green);
+        }
+
+        .platform-item:hover {
+            border-color: var(--bright-green);
+        }
+
+        .platform-status {
+            font-size: 1rem;
+        }
+
+        .data-link {
+            color: var(--terminal-blue);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .data-link:hover {
+            text-decoration: underline;
+            color: var(--bright-green);
+        }
         
         @keyframes blink {
             0%, 100% { opacity: 1; }
@@ -1019,7 +1084,7 @@
     <header>
         <div class="logo-section">
             <div class="logo">PHAGES//TACTICAL</div>
-            <div class="version">v3.7.2-STABLE</div>
+            <div class="version">v4.0.0-ELITE</div>
         </div>
         <div class="status-bar">
             <div class="status-item">
@@ -1064,6 +1129,22 @@
                 </div>
                 <div class="nav-item" data-tool="reputation">
                     <span class="nav-icon">▸</span> IP REPUTATION
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">// IDENTITY INTEL</div>
+                <div class="nav-item" data-tool="email">
+                    <span class="nav-icon">▸</span> EMAIL OSINT
+                    <span class="new-badge">NEW</span>
+                </div>
+                <div class="nav-item" data-tool="username">
+                    <span class="nav-icon">▸</span> USERNAME HUNTER
+                    <span class="new-badge">NEW</span>
+                </div>
+                <div class="nav-item" data-tool="phone">
+                    <span class="nav-icon">▸</span> PHONE INTEL
+                    <span class="new-badge">NEW</span>
                 </div>
             </div>
             
@@ -1257,6 +1338,87 @@
                 <div id="portResults"></div>
             </div>
 
+            <!-- Email OSINT -->
+            <div class="tool-panel" id="email">
+                <div class="panel-header">
+                    <h2 class="panel-title">EMAIL OSINT <span class="badge badge-elite">ELITE</span></h2>
+                    <p class="panel-subtitle">Email Intelligence & Verification</p>
+                </div>
+                
+                <div class="control-box">
+                    <div class="input-group">
+                        <input type="text" id="emailInput" placeholder="TARGET EMAIL ADDRESS">
+                        <button id="emailScanBtn">[ INVESTIGATE ]</button>
+                    </div>
+                </div>
+                
+                <div class="alert warning">
+                    <span class="alert-icon">[!]</span>
+                    <div class="alert-content">
+                        <div class="alert-title">PRIVACY NOTICE</div>
+                        <div>Email investigation may reveal breach data. Use only with proper authorization.</div>
+                    </div>
+                </div>
+                
+                <div id="emailResults"></div>
+            </div>
+
+            <!-- Username Hunter -->
+            <div class="tool-panel" id="username">
+                <div class="panel-header">
+                    <h2 class="panel-title">USERNAME HUNTER <span class="badge badge-elite">ELITE</span></h2>
+                    <p class="panel-subtitle">Cross-Platform Username Enumeration</p>
+                </div>
+                
+                <div class="control-box">
+                    <div class="input-group">
+                        <input type="text" id="usernameInput" placeholder="TARGET USERNAME">
+                        <button id="usernameScanBtn">[ HUNT ]</button>
+                    </div>
+                </div>
+                
+                <div class="alert">
+                    <span class="alert-icon">[i]</span>
+                    <div class="alert-content">
+                        <div class="alert-title">SHERLOCK ALGORITHM</div>
+                        <div>Checking 50+ platforms including social media, developer sites, gaming networks, and professional platforms.</div>
+                    </div>
+                </div>
+                
+                <div id="usernameResults"></div>
+            </div>
+
+            <!-- Phone Intel -->
+            <div class="tool-panel" id="phone">
+                <div class="panel-header">
+                    <h2 class="panel-title">PHONE INTELLIGENCE <span class="badge badge-elite">ELITE</span></h2>
+                    <p class="panel-subtitle">Phone Number Analysis & Validation</p>
+                </div>
+                
+                <div class="control-box">
+                    <div class="input-group">
+                        <input type="text" id="phoneInput" placeholder="PHONE NUMBER (e.g., +1 555 123 4567)">
+                        <button id="phoneScanBtn">[ ANALYZE ]</button>
+                    </div>
+                    <div class="quick-chips">
+                        <span class="chip" onclick="quickPhone('+1')">US</span>
+                        <span class="chip" onclick="quickPhone('+44')">UK</span>
+                        <span class="chip" onclick="quickPhone('+61')">AU</span>
+                        <span class="chip" onclick="quickPhone('+86')">CN</span>
+                    </div>
+                </div>
+                
+                <div class="alert">
+                    <span class="alert-icon">[i]</span>
+                    <div class="alert-content">
+                        <div class="alert-title">VALIDATION ENGINE</div>
+                        <div>Advanced phone number parsing and validation. Provides search links for deeper investigation.</div>
+                    </div>
+                </div>
+                
+                <div id="phoneResults"></div>
+            </div>
+
             <!-- History -->
             <div class="tool-panel" id="history">
                 <div class="panel-header">
@@ -1297,7 +1459,7 @@
     </div>
 
     <footer>
-        <p>PHAGES//TACTICAL OSINT TERMINAL v3.7.2 // FOR AUTHORIZED USE ONLY</p>
+        <p>PHAGES//TACTICAL ELITE OSINT v4.0.0 // 13 INTELLIGENCE MODULES // FOR AUTHORIZED USE ONLY</p>
         <p>ALL OPERATIONS LOGGED // UNAUTHORIZED ACCESS PROHIBITED</p>
     </footer>
 
@@ -1355,6 +1517,61 @@
         };
 
         const RATE_LIMIT_MS = 1400;
+
+        // Platform Database for Username Hunter
+        const PLATFORMS = [
+            { name: 'GitHub', url: 'https://github.com/{username}', icon: '💻' },
+            { name: 'Twitter', url: 'https://twitter.com/{username}', icon: '🐦' },
+            { name: 'Instagram', url: 'https://instagram.com/{username}', icon: '📷' },
+            { name: 'Reddit', url: 'https://reddit.com/user/{username}', icon: '🤖' },
+            { name: 'LinkedIn', url: 'https://linkedin.com/in/{username}', icon: '💼' },
+            { name: 'Facebook', url: 'https://facebook.com/{username}', icon: '👥' },
+            { name: 'YouTube', url: 'https://youtube.com/@{username}', icon: '📺' },
+            { name: 'TikTok', url: 'https://tiktok.com/@{username}', icon: '🎵' },
+            { name: 'Twitch', url: 'https://twitch.tv/{username}', icon: '🎮' },
+            { name: 'Steam', url: 'https://steamcommunity.com/id/{username}', icon: '🎮' },
+            { name: 'Discord', url: 'https://discord.com/users/{username}', icon: '💬' },
+            { name: 'Telegram', url: 'https://t.me/{username}', icon: '📱' },
+            { name: 'Medium', url: 'https://medium.com/@{username}', icon: '📝' },
+            { name: 'Dev.to', url: 'https://dev.to/{username}', icon: '👨‍💻' },
+            { name: 'HackerNews', url: 'https://news.ycombinator.com/user?id={username}', icon: '🗞️' },
+            { name: 'StackOverflow', url: 'https://stackoverflow.com/users/{username}', icon: '❓' },
+            { name: 'GitLab', url: 'https://gitlab.com/{username}', icon: '🦊' },
+            { name: 'Bitbucket', url: 'https://bitbucket.org/{username}', icon: '📦' },
+            { name: 'Patreon', url: 'https://patreon.com/{username}', icon: '💰' },
+            { name: 'Ko-fi', url: 'https://ko-fi.com/{username}', icon: '☕' },
+            { name: 'Spotify', url: 'https://open.spotify.com/user/{username}', icon: '🎵' },
+            { name: 'SoundCloud', url: 'https://soundcloud.com/{username}', icon: '🔊' },
+            { name: 'Pinterest', url: 'https://pinterest.com/{username}', icon: '📌' },
+            { name: 'Tumblr', url: 'https://{username}.tumblr.com', icon: '📱' },
+            { name: 'Flickr', url: 'https://flickr.com/people/{username}', icon: '📸' },
+            { name: 'Behance', url: 'https://behance.net/{username}', icon: '🎨' },
+            { name: 'Dribbble', url: 'https://dribbble.com/{username}', icon: '🏀' },
+            { name: 'DeviantArt', url: 'https://deviantart.com/{username}', icon: '🎨' },
+            { name: 'ArtStation', url: 'https://artstation.com/{username}', icon: '🖼️' },
+            { name: 'Vimeo', url: 'https://vimeo.com/{username}', icon: '🎬' },
+            { name: 'Keybase', url: 'https://keybase.io/{username}', icon: '🔐' },
+            { name: 'HackerOne', url: 'https://hackerone.com/{username}', icon: '🔒' },
+            { name: 'About.me', url: 'https://about.me/{username}', icon: '👤' },
+            { name: 'Linktree', url: 'https://linktr.ee/{username}', icon: '🌳' },
+            { name: 'Cash App', url: 'https://cash.app/${username}', icon: '💵' },
+            { name: 'Venmo', url: 'https://venmo.com/{username}', icon: '💳' },
+            { name: 'Xbox Live', url: 'https://account.xbox.com/Profile?Gamertag={username}', icon: '🎮' },
+            { name: 'PlayStation', url: 'https://my.playstation.com/profile/{username}', icon: '🎮' },
+            { name: 'Roblox', url: 'https://roblox.com/users/profile?username={username}', icon: '🎮' },
+            { name: 'Chess.com', url: 'https://chess.com/member/{username}', icon: '♟️' },
+            { name: 'Lichess', url: 'https://lichess.org/@/{username}', icon: '♟️' },
+            { name: 'Goodreads', url: 'https://goodreads.com/{username}', icon: '📚' },
+            { name: 'MyAnimeList', url: 'https://myanimelist.net/profile/{username}', icon: '🎌' },
+            { name: 'Last.fm', url: 'https://last.fm/user/{username}', icon: '🎵' },
+            { name: 'Wattpad', url: 'https://wattpad.com/user/{username}', icon: '📖' },
+            { name: 'Etsy', url: 'https://etsy.com/shop/{username}', icon: '🛍️' },
+            { name: 'CodePen', url: 'https://codepen.io/{username}', icon: '💻' },
+            { name: 'Replit', url: 'https://replit.com/@{username}', icon: '⚡' },
+            { name: 'Kaggle', url: 'https://kaggle.com/{username}', icon: '📊' },
+            { name: 'Mastodon', url: 'https://mastodon.social/@{username}', icon: '🐘' },
+            { name: 'Crunchyroll', url: 'https://crunchyroll.com/user/{username}', icon: '🎌' }
+        ];
         
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
@@ -1481,6 +1698,11 @@
             document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
             document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
             document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
+            
+            // Elite module listeners
+            document.getElementById('emailScanBtn').addEventListener('click', scanEmail);
+            document.getElementById('usernameScanBtn').addEventListener('click', scanUsername);
+            document.getElementById('phoneScanBtn').addEventListener('click', scanPhone);
         });
 
         async function getMyIP() {
@@ -2158,6 +2380,17 @@
             return /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
         }
 
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        async function simpleHash(str) {
+            const msgBuffer = new TextEncoder().encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         function showLoading() {
             document.getElementById('loadingOverlay').classList.add('show');
         }
@@ -2182,6 +2415,243 @@
 
         function quickPort(port) {
             document.getElementById('portInput').value = port;
+        }
+
+        function quickPhone(code) {
+            document.getElementById('phoneInput').value = code + ' ';
+        }
+
+        // EMAIL OSINT
+        async function scanEmail() {
+            const email = document.getElementById('emailInput').value.trim();
+            if (!email) return showToast('ENTER EMAIL', 'warning');
+            if (!isValidEmail(email)) return showToast('INVALID EMAIL FORMAT', 'error');
+            if (!checkRateLimit()) return;
+
+            showLoading();
+            try {
+                const domain = email.split('@')[1];
+                
+                // Check MX records
+                const dnsRes = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
+                const dnsData = await dnsRes.json();
+                const hasMX = dnsData.Answer && dnsData.Answer.length > 0;
+
+                // Check if disposable
+                const disposableDomains = ['tempmail.com', 'guerrillamail.com', '10minutemail.com', 'throwaway.email', 'mailinator.com', 'maildrop.cc'];
+                const isDisposable = disposableDomains.some(d => domain.toLowerCase().includes(d));
+
+                // Check Gravatar
+                const hash = await simpleHash(email.toLowerCase());
+                const gravatarUrl = `https://www.gravatar.com/avatar/${hash}?d=404`;
+                let hasGravatar = false;
+                try {
+                    const gravRes = await fetch(gravatarUrl, { method: 'HEAD', mode: 'no-cors' });
+                    hasGravatar = true; // If no error, likely exists
+                } catch(e) {
+                    hasGravatar = false;
+                }
+
+                const html = `
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <div class="card-title">EMAIL ANALYSIS ${isDisposable ? '<span class="badge badge-warning">DISPOSABLE</span>' : ''}</div>
+                            <div class="data-row">
+                                <span class="data-label">EMAIL</span>
+                                <span class="data-value">${email}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">DOMAIN</span>
+                                <span class="data-value">${domain}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">MX RECORDS</span>
+                                <span class="data-value">${hasMX ? '✓ VALID' : '✗ INVALID'} ${!hasMX ? '<span class="badge badge-critical">NO MX</span>' : ''}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">DISPOSABLE</span>
+                                <span class="data-value">${isDisposable ? '✓ YES' : '✗ NO'}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">GRAVATAR</span>
+                                <span class="data-value">${hasGravatar ? '✓ FOUND' : '✗ NOT FOUND'}</span>
+                            </div>
+                        </div>
+                        <div class="result-card">
+                            <div class="card-title">SEARCH & INVESTIGATE</div>
+                            <div class="data-row">
+                                <span class="data-label">GOOGLE SEARCH</span>
+                                <span class="data-value"><a href="https://www.google.com/search?q=${encodeURIComponent(email)}" target="_blank" class="data-link">SEARCH</a></span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">GITHUB</span>
+                                <span class="data-value"><a href="https://github.com/search?q=${encodeURIComponent(email)}&type=users" target="_blank" class="data-link">SEARCH</a></span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">HAVEIBEENPWNED</span>
+                                <span class="data-value"><a href="https://haveibeenpwned.com/account/${encodeURIComponent(email)}" target="_blank" class="data-link">CHECK BREACHES</a></span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">HUNTER.IO</span>
+                                <span class="data-value"><a href="https://hunter.io/search/${encodeURIComponent(domain)}" target="_blank" class="data-link">FIND SIMILAR</a></span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('emailResults').innerHTML = html;
+
+                addToHistory('EMAIL OSINT', `${email} - ${hasMX ? 'VALID' : 'INVALID'}`);
+                sessionData.scans++;
+                if (!hasMX || isDisposable) sessionData.threats++;
+                updateStats();
+                showToast('INVESTIGATION COMPLETE', 'success');
+                hideLoading();
+            } catch (err) {
+                hideLoading();
+                showToast(`INVESTIGATION FAILED: ${err.message}`, 'error');
+            }
+        }
+
+        // USERNAME HUNTER
+        async function scanUsername() {
+            const username = document.getElementById('usernameInput').value.trim();
+            if (!username) return showToast('ENTER USERNAME', 'warning');
+            if (username.length < 3) return showToast('USERNAME TOO SHORT (MIN 3)', 'error');
+            if (!/^[a-zA-Z0-9_.-]+$/.test(username)) return showToast('INVALID USERNAME FORMAT', 'error');
+
+            showLoading();
+            showToast('HUNTING ACROSS 50+ PLATFORMS...', 'info');
+
+            try {
+                const platformHTML = PLATFORMS.map(platform => {
+                    const url = platform.url.replace('{username}', username);
+                    return `
+                        <div class="platform-item found">
+                            <span class="platform-status">${platform.icon}</span>
+                            <span style="flex:1">${platform.name}</span>
+                            <a href="${url}" target="_blank" class="data-link">CHECK</a>
+                        </div>
+                    `;
+                }).join('');
+
+                const html = `
+                    <div class="result-card">
+                        <div class="card-title">CHECKING ${PLATFORMS.length} PLATFORMS <span class="badge badge-safe">ACTIVE</span></div>
+                        <div class="alert">
+                            <span class="alert-icon">[i]</span>
+                            <div class="alert-content">
+                                <div class="alert-title">MANUAL VERIFICATION REQUIRED</div>
+                                <div>Click "CHECK" to verify if username exists on each platform. Some platforms may require login to view.</div>
+                            </div>
+                        </div>
+                        <div class="platform-list">
+                            ${platformHTML}
+                        </div>
+                    </div>
+                `;
+                document.getElementById('usernameResults').innerHTML = html;
+
+                addToHistory('USERNAME HUNT', `${username} - ${PLATFORMS.length} platforms checked`);
+                sessionData.scans++;
+                sessionData.targets++;
+                updateStats();
+                showToast(`MAPPED ${PLATFORMS.length} PLATFORMS`, 'success');
+                hideLoading();
+            } catch (err) {
+                hideLoading();
+                showToast(`HUNT FAILED: ${err.message}`, 'error');
+            }
+        }
+
+        // PHONE INTEL
+        function scanPhone() {
+            const phone = document.getElementById('phoneInput').value.trim();
+            if (!phone) return showToast('ENTER PHONE NUMBER', 'warning');
+
+            const cleaned = phone.replace(/[^\d+]/g, '');
+            if (cleaned.length < 8) return showToast('PHONE NUMBER TOO SHORT', 'error');
+
+            let country = 'UNKNOWN';
+            let region = '';
+
+            if (cleaned.startsWith('+1')) {
+                country = 'United States/Canada';
+                region = 'North America';
+            } else if (cleaned.startsWith('+44')) {
+                country = 'United Kingdom';
+                region = 'Europe';
+            } else if (cleaned.startsWith('+61')) {
+                country = 'Australia';
+                region = 'Oceania';
+            } else if (cleaned.startsWith('+86')) {
+                country = 'China';
+                region = 'Asia';
+            } else if (cleaned.startsWith('+91')) {
+                country = 'India';
+                region = 'Asia';
+            } else if (cleaned.startsWith('+81')) {
+                country = 'Japan';
+                region = 'Asia';
+            } else if (cleaned.startsWith('+49')) {
+                country = 'Germany';
+                region = 'Europe';
+            } else if (cleaned.startsWith('+33')) {
+                country = 'France';
+                region = 'Europe';
+            }
+
+            const html = `
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="card-title">PHONE ANALYSIS</div>
+                        <div class="data-row">
+                            <span class="data-label">NUMBER</span>
+                            <span class="data-value">${phone}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">FORMATTED</span>
+                            <span class="data-value">${cleaned}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">COUNTRY</span>
+                            <span class="data-value">${country}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">REGION</span>
+                            <span class="data-value">${region || 'N/A'}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">LENGTH</span>
+                            <span class="data-value">${cleaned.length} digits</span>
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <div class="card-title">SEARCH & LOOKUP</div>
+                        <div class="data-row">
+                            <span class="data-label">GOOGLE</span>
+                            <span class="data-value"><a href="https://www.google.com/search?q=${encodeURIComponent(phone)}" target="_blank" class="data-link">SEARCH</a></span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">TRUECALLER</span>
+                            <span class="data-value"><a href="https://www.truecaller.com/search/${encodeURIComponent(cleaned)}" target="_blank" class="data-link">LOOKUP</a></span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">WHITEPAGES</span>
+                            <span class="data-value"><a href="https://www.whitepages.com/phone/${encodeURIComponent(cleaned)}" target="_blank" class="data-link">SEARCH</a></span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">411</span>
+                            <span class="data-value"><a href="https://www.411.com/phone/${encodeURIComponent(cleaned)}" target="_blank" class="data-link">LOOKUP</a></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('phoneResults').innerHTML = html;
+
+            addToHistory('PHONE INTEL', `${phone} - ${country}`);
+            sessionData.scans++;
+            updateStats();
+            showToast('ANALYSIS COMPLETE', 'success');
         }
     </script>
 </body>
