@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNUGGLEBUG // OSINT Intelligence Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary: #2d5016;
+            --accent: #4a7c2c;
+            --bright: #5a9a3a;
+            --text-white: #c0c0c0;
+            --text-gray: #6b6b6b;
+            --bg-black: #0f0f0f;
+            --bg-dark: #1a1a1a;
+            --bg-darker: #151515;
+            --border: #3d6b23;
+            --red: #8b0000;
+            --yellow: #b8860b;
+            --blue: #4169e1;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: var(--bg-black);
+            color: var(--text-white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(45, 80, 22, 0.03) 2px, rgba(45, 80, 22, 0.03) 4px);
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.3;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            background: var(--accent);
+            opacity: 0.1;
+            animation: scanline 4s linear infinite;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100vh); }
+        }
+
+        header {
+            background: var(--bg-darker);
+            border-bottom: 3px solid var(--border);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(61, 107, 35, 0.2);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            color: var(--bright);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            font-weight: 700;
+            text-shadow: 0 0 15px var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        nav {
+            background: var(--bg-darker);
+            border-bottom: 2px solid var(--border);
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            gap: 0;
+        }
+
+        .nav-tab {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            border-right: 1px solid #222;
+        }
+
+        .nav-tab:last-child { border-right: none; }
+
+        .nav-tab:hover {
+            background: rgba(74, 124, 44, 0.1);
+            color: var(--bright);
+        }
+
+        .nav-tab.active {
+            background: rgba(74, 124, 44, 0.15);
+            border-bottom-color: var(--accent);
+            color: var(--bright);
+            box-shadow: inset 0 0 10px rgba(74, 124, 44, 0.2);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            text-align: center;
+        }
+
+        .panel-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--bright);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .panel-subtitle {
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .control-box {
+            background: var(--bg-darker);
+            border: 2px solid var(--border);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .control-box::before {
+            content: '[ CONTROL INTERFACE ]';
+            position: absolute;
+            top: -12px; left: 20px;
+            background: var(--bg-black);
+            padding: 0 0.5rem;
+            color: var(--accent);
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: var(--bg-black);
+            border: 2px solid var(--border);
+            color: var(--accent);
+            padding: 1rem;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(74, 124, 44, 0.3);
+        }
+
+        input[type="text"]::placeholder { color: #666; }
+
+        button {
+            background: var(--bg-black);
+            border: 2px solid var(--border);
+            color: var(--accent);
+            padding: 1rem 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 0.15em;
+            font-size: 0.9rem;
+        }
+
+        button:hover {
+            background: var(--accent);
+            color: var(--bg-black);
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        .btn-secondary {
+            border-color: var(--text-white);
+            color: var(--text-white);
+        }
+
+        .btn-secondary:hover {
+            background: var(--text-white);
+        }
+
+        .quick-chips {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .chip {
+            background: var(--bg-black);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .chip:hover {
+            background: var(--accent);
+            color: var(--bg-black);
+        }
+
+        #map {
+            height: 600px;
+            border: 3px solid var(--border);
+            margin-bottom: 2rem;
+            box-shadow: 0 0 20px rgba(61, 107, 35, 0.2);
+            background: #000;
+        }
+
+        .leaflet-container {
+            background: #000 !important;
+            filter: grayscale(100%) contrast(1.2) brightness(0.9);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .result-card {
+            background: var(--bg-darker);
+            border: 2px solid var(--border);
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .result-card:hover {
+            box-shadow: 0 0 25px rgba(74, 124, 44, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--bright);
+            margin-bottom: 1rem;
+            letter-spacing: 0.1em;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.6rem 0;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid #222;
+            gap: 1rem;
+        }
+
+        .data-label {
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+        }
+
+        .data-value {
+            color: var(--text-white);
+            font-weight: 600;
+            word-break: break-word;
+            text-align: right;
+        }
+
+        /* Bubble Map Styles */
+        .bubble-map {
+            position: relative;
+            min-height: 600px;
+            padding: 3rem;
+        }
+
+        .bubble-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3rem;
+        }
+
+        .bubble-row {
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .bubble {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: var(--bg-darker);
+            border: 3px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px var(--accent);
+            border-color: var(--bright);
+        }
+
+        .bubble.main {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-color: var(--bright);
+            box-shadow: 0 0 30px rgba(74, 124, 44, 0.4);
+        }
+
+        .bubble-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .bubble-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--bright);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+
+        .bubble-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+        }
+
+        .connector {
+            width: 2px;
+            height: 50px;
+            background: linear-gradient(180deg, var(--accent), transparent);
+            margin: 0 auto;
+        }
+
+        .connector-horizontal {
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--bg-black);
+            border: 2px solid var(--border);
+            padding: 1rem 1.5rem;
+            box-shadow: 0 0 30px rgba(74, 124, 44, 0.4);
+            z-index: 9999;
+            animation: slideIn 0.3s;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); }
+            to { transform: translateX(0); }
+        }
+
+        .toast.error { border-color: var(--red); }
+        .toast.success { border-color: var(--bright); }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-overlay.show { display: flex; }
+
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 3px solid #222;
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            position: absolute;
+            margin-top: 130px;
+            color: var(--bright);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+        }
+
+        footer {
+            border-top: 2px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            background: var(--bg-darker);
+            color: var(--text-gray);
+            font-size: 0.75rem;
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .logo { font-size: 1.8rem; }
+            .bubble { width: 150px; height: 150px; }
+            .bubble.main { width: 180px; height: 180px; }
+            nav { flex-direction: column; }
+            .nav-tab { border-right: none; border-bottom: 1px solid #222; }
+            .results-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-icon">🐛</div>
+        <div class="logo">SNUGGLEBUG</div>
+        <div class="tagline">OSINT Intelligence Hub</div>
+    </header>
+
+    <nav>
+        <div class="nav-tab active" data-panel="ip-tracer">🌍 IP TRACER</div>
+        <div class="nav-tab" data-panel="tools">🔗 OSINT TOOLS</div>
+    </nav>
+
+    <div class="container">
+        <!-- IP Tracer Panel -->
+        <div class="panel active" id="ip-tracer">
+            <div class="panel-header">
+                <h2 class="panel-title">IP GEOLOCATION TRACER</h2>
+                <p class="panel-subtitle">Track & Map IP Addresses Worldwide</p>
+            </div>
+
+            <div class="control-box">
+                <div class="input-group">
+                    <input type="text" id="ipInput" placeholder="ENTER TARGET IP ADDRESS (e.g., 8.8.8.8)">
+                    <button id="scanBtn">[ TRACE ]</button>
+                    <button class="btn-secondary" id="myIpBtn">[ MY IP ]</button>
+                </div>
+                <div class="quick-chips">
+                    <span class="chip" onclick="quickIP('8.8.8.8')">GOOGLE DNS</span>
+                    <span class="chip" onclick="quickIP('1.1.1.1')">CLOUDFLARE</span>
+                    <span class="chip" onclick="quickIP('208.67.222.222')">OPENDNS</span>
+                    <span class="chip" onclick="quickIP('13.107.42.14')">MICROSOFT</span>
+                </div>
+            </div>
+
+            <div id="map"></div>
+            <div id="results"></div>
+        </div>
+
+        <!-- OSINT Tools Panel -->
+        <div class="panel" id="tools">
+            <div class="panel-header">
+                <h2 class="panel-title">OSINT TOOL HUB</h2>
+                <p class="panel-subtitle">Elite Intelligence Resources</p>
+            </div>
+
+            <div class="bubble-map">
+                <div class="bubble-container">
+                    <!-- Main Hub -->
+                    <div class="bubble main" onclick="window.open('https://snugglebug.com', '_self')">
+                        <div class="bubble-icon">🐛</div>
+                        <div class="bubble-title">SNUGGLEBUG</div>
+                        <div class="bubble-subtitle">OSINT Hub</div>
+                    </div>
+
+                    <div class="connector"></div>
+
+                    <!-- Category: Phone Intelligence -->
+                    <div class="bubble-row">
+                        <div class="bubble" onclick="window.open('https://www.spydialer.com', '_blank')">
+                            <div class="bubble-icon">📞</div>
+                            <div class="bubble-title">SPYDIALER</div>
+                            <div class="bubble-subtitle">Free Phone Lookup</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://www.truecaller.com', '_blank')">
+                            <div class="bubble-icon">🔍</div>
+                            <div class="bubble-title">TRUECALLER</div>
+                            <div class="bubble-subtitle">Caller ID & Spam</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://www.whitepages.com', '_blank')">
+                            <div class="bubble-icon">📖</div>
+                            <div class="bubble-title">WHITEPAGES</div>
+                            <div class="bubble-subtitle">People Search</div>
+                        </div>
+                    </div>
+
+                    <div class="connector"></div>
+
+                    <!-- Category: Email & Breach -->
+                    <div class="bubble-row">
+                        <div class="bubble" onclick="window.open('https://haveibeenpwned.com', '_blank')">
+                            <div class="bubble-icon">🔓</div>
+                            <div class="bubble-title">HIBP</div>
+                            <div class="bubble-subtitle">Breach Database</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://hunter.io', '_blank')">
+                            <div class="bubble-icon">✉️</div>
+                            <div class="bubble-title">HUNTER.IO</div>
+                            <div class="bubble-subtitle">Email Finder</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://epieos.com', '_blank')">
+                            <div class="bubble-icon">🎯</div>
+                            <div class="bubble-title">EPIEOS</div>
+                            <div class="bubble-subtitle">Email OSINT</div>
+                        </div>
+                    </div>
+
+                    <div class="connector"></div>
+
+                    <!-- Category: Username & Social -->
+                    <div class="bubble-row">
+                        <div class="bubble" onclick="window.open('https://namechk.com', '_blank')">
+                            <div class="bubble-icon">👤</div>
+                            <div class="bubble-title">NAMECHK</div>
+                            <div class="bubble-subtitle">Username Search</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://whatsmyname.app', '_blank')">
+                            <div class="bubble-icon">🔎</div>
+                            <div class="bubble-title">WHATSMYNAME</div>
+                            <div class="bubble-subtitle">400+ Platforms</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://sherlock-project.github.io', '_blank')">
+                            <div class="bubble-icon">🕵️</div>
+                            <div class="bubble-title">SHERLOCK</div>
+                            <div class="bubble-subtitle">Social Hunt</div>
+                        </div>
+                    </div>
+
+                    <div class="connector"></div>
+
+                    <!-- Category: Network & IP -->
+                    <div class="bubble-row">
+                        <div class="bubble" onclick="window.open('https://www.shodan.io', '_blank')">
+                            <div class="bubble-icon">🌐</div>
+                            <div class="bubble-title">SHODAN</div>
+                            <div class="bubble-subtitle">Device Search</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://www.virustotal.com', '_blank')">
+                            <div class="bubble-icon">🛡️</div>
+                            <div class="bubble-title">VIRUSTOTAL</div>
+                            <div class="bubble-subtitle">Threat Intel</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://crt.sh', '_blank')">
+                            <div class="bubble-icon">🔐</div>
+                            <div class="bubble-title">CRT.SH</div>
+                            <div class="bubble-subtitle">Certificate Search</div>
+                        </div>
+                    </div>
+
+                    <div class="connector"></div>
+
+                    <!-- Category: Advanced Tools -->
+                    <div class="bubble-row">
+                        <div class="bubble" onclick="window.open('https://osintframework.com', '_blank')">
+                            <div class="bubble-icon">🗂️</div>
+                            <div class="bubble-title">OSINT FRAMEWORK</div>
+                            <div class="bubble-subtitle">Tool Directory</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://www.maltego.com', '_blank')">
+                            <div class="bubble-icon">🕸️</div>
+                            <div class="bubble-title">MALTEGO</div>
+                            <div class="bubble-subtitle">Link Analysis</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://intelx.io', '_blank')">
+                            <div class="bubble-icon">💾</div>
+                            <div class="bubble-title">INTELLIGENCE X</div>
+                            <div class="bubble-subtitle">Archive Search</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>🐛 SNUGGLEBUG OSINT HUB // FOR AUTHORIZED RESEARCH ONLY</p>
+        <p>USE RESPONSIBLY // ALL ACTIVITY MAY BE LOGGED</p>
+    </footer>
+
+    <div class="loading-overlay" id="loading">
+        <div>
+            <div class="loader"></div>
+            <div class="loading-text">TRACING...</div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let lastScan = 0;
+        const RATE_LIMIT = 1400;
+
+        // Navigation
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.panel).classList.add('active');
+                if (tab.dataset.panel === 'ip-tracer' && !map) initMap();
+            });
+        });
+
+        // Initialize map
+        function initMap() {
+            if (map) return;
+            map = L.map('map').setView([20, 0], 2);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19
+            }).addTo(map);
+            setTimeout(() => map.invalidateSize(), 100);
+        }
+
+        // Utilities
+        function showToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function showLoading() { document.getElementById('loading').classList.add('show'); }
+        function hideLoading() { document.getElementById('loading').classList.remove('show'); }
+
+        function checkRateLimit() {
+            const now = Date.now();
+            if (now - lastScan < RATE_LIMIT) {
+                const wait = Math.ceil((RATE_LIMIT - (now - lastScan)) / 1000);
+                showToast(`WAIT ${wait}S`, 'error');
+                return false;
+            }
+            lastScan = now;
+            return true;
+        }
+
+        function isValidIP(ip) {
+            return /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
+        }
+
+        function quickIP(ip) {
+            document.getElementById('ipInput').value = ip;
+        }
+
+        function addMarker(lat, lon, data) {
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            const icon = L.divIcon({
+                className: 'custom-marker',
+                html: '<div style="background: #4a7c2c; width: 16px; height: 16px; border: 3px solid #000; box-shadow: 0 0 15px #4a7c2c;"></div>',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+            const marker = L.marker([lat, lon], { icon }).addTo(map);
+            marker.bindPopup(`<strong>${data.query}</strong><br>${data.city}, ${data.country}`).openPopup();
+            markers.push(marker);
+            map.setView([lat, lon], 6);
+        }
+
+        // Get My IP
+        async function getMyIP() {
+            try {
+                showLoading();
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                document.getElementById('ipInput').value = data.ip;
+                hideLoading();
+                showToast('IP RETRIEVED');
+                scanIP();
+            } catch (err) {
+                hideLoading();
+                showToast('FAILED', 'error');
+            }
+        }
+
+        // Scan IP
+        async function scanIP() {
+            const ip = document.getElementById('ipInput').value.trim();
+            if (!ip) return showToast('ENTER IP', 'error');
+            if (!isValidIP(ip)) return showToast('INVALID IP', 'error');
+            if (!checkRateLimit()) return;
+
+            showLoading();
+            try {
+                const res = await fetch(`https://ipapi.co/${ip}/json/`);
+                if (!res.ok) throw new Error('API ERROR');
+                const data = await res.json();
+                if (data.error) throw new Error(data.reason);
+
+                displayResults(data);
+                if (data.latitude && data.longitude) {
+                    addMarker(data.latitude, data.longitude, {
+                        query: ip,
+                        city: data.city,
+                        country: data.country_name
+                    });
+                }
+
+                showToast('TRACE COMPLETE');
+                hideLoading();
+            } catch (err) {
+                hideLoading();
+                showToast('TRACE FAILED: ' + err.message, 'error');
+            }
+        }
+
+        function displayResults(data) {
+            const html = `
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="card-title">${data.ip}</div>
+                        <div class="data-row">
+                            <span class="data-label">COUNTRY</span>
+                            <span class="data-value">${data.country_name} (${data.country_code})</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">REGION</span>
+                            <span class="data-value">${data.region}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">CITY</span>
+                            <span class="data-value">${data.city}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">COORDINATES</span>
+                            <span class="data-value">${data.latitude}, ${data.longitude}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">TIMEZONE</span>
+                            <span class="data-value">${data.timezone}</span>
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <div class="card-title">NETWORK INFO</div>
+                        <div class="data-row">
+                            <span class="data-label">ISP</span>
+                            <span class="data-value">${data.org || 'N/A'}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">ASN</span>
+                            <span class="data-value">${data.asn || 'N/A'}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">POSTAL</span>
+                            <span class="data-value">${data.postal || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('results').innerHTML = html;
+        }
+
+        // Event Listeners
+        document.getElementById('scanBtn').addEventListener('click', scanIP);
+        document.getElementById('myIpBtn').addEventListener('click', getMyIP);
+        document.getElementById('ipInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') scanIP();
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+        });
+    </script>
+</body>
+</html>
