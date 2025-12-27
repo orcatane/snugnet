@@ -6,6 +6,7 @@
     <title>SNUGGLEBUG // OSINT Intelligence Hub</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <style>
         :root {
             --primary: #2d5016;
@@ -470,6 +471,102 @@
             letter-spacing: 0.3em;
         }
 
+        /* EXIF Stripper Styles */
+        .exif-preview {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .exif-preview img {
+            max-width: 100%;
+            max-height: 500px;
+            border: 3px solid var(--border);
+            box-shadow: 0 0 20px rgba(74, 124, 44, 0.2);
+        }
+
+        .exif-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .exif-section {
+            background: var(--bg-darker);
+            border: 2px solid var(--border);
+            padding: 1.5rem;
+        }
+
+        .exif-section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--bright);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .exif-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid #222;
+            gap: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .exif-label {
+            color: var(--text-gray);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .exif-value {
+            color: var(--text-white);
+            font-weight: 600;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .exif-warning {
+            background: rgba(139, 0, 0, 0.1);
+            border: 2px solid var(--red);
+            border-left: 4px solid var(--red);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            color: var(--text-white);
+        }
+
+        .exif-warning-title {
+            font-weight: 700;
+            color: var(--red);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .exif-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-danger {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .btn-danger:hover {
+            background: var(--red);
+            color: var(--text-white);
+            box-shadow: 0 0 20px var(--red);
+        }
+
         footer {
             border-top: 2px solid var(--border);
             padding: 2rem;
@@ -499,6 +596,7 @@
 
     <nav>
         <div class="nav-tab active" data-panel="ip-tracer">🌍 IP TRACER</div>
+        <div class="nav-tab" data-panel="exif">📸 EXIF STRIPPER</div>
         <div class="nav-tab" data-panel="tools">🔗 OSINT TOOLS</div>
     </nav>
 
@@ -528,6 +626,30 @@
             <div id="results"></div>
         </div>
 
+        <!-- EXIF Stripper Panel -->
+        <div class="panel" id="exif">
+            <div class="panel-header">
+                <h2 class="panel-title">EXIF METADATA STRIPPER</h2>
+                <p class="panel-subtitle">View & Remove Image Metadata</p>
+            </div>
+
+            <div class="control-box">
+                <div style="text-align: center;">
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    <button onclick="document.getElementById('imageInput').click()" style="font-size: 1rem; padding: 1.5rem 3rem;">
+                        [ UPLOAD IMAGE ]
+                    </button>
+                </div>
+                <div style="margin-top: 1rem; text-align: center; color: var(--text-gray); font-size: 0.8rem;">
+                    Supported: JPG, PNG, WEBP // Max 10MB // 100% Client-Side (Nothing Uploaded)
+                </div>
+            </div>
+
+            <div id="exifPreview"></div>
+            <div id="exifData"></div>
+            <div id="exifActions"></div>
+        </div>
+
         <!-- OSINT Tools Panel -->
         <div class="panel" id="tools">
             <div class="panel-header">
@@ -546,7 +668,7 @@
 
                     <div class="connector"></div>
 
-                    <!-- Category: Phone Intelligence -->
+                    <!-- Category: Phone Intelligence (THE BEST) -->
                     <div class="bubble-row">
                         <div class="bubble" onclick="window.open('https://www.spydialer.com', '_blank')">
                             <div class="bubble-icon">📞</div>
@@ -557,19 +679,19 @@
                         <div class="bubble" onclick="window.open('https://www.truecaller.com', '_blank')">
                             <div class="bubble-icon">🔍</div>
                             <div class="bubble-title">TRUECALLER</div>
-                            <div class="bubble-subtitle">Caller ID & Spam</div>
+                            <div class="bubble-subtitle">Caller ID Database</div>
                         </div>
 
-                        <div class="bubble" onclick="window.open('https://www.whitepages.com', '_blank')">
+                        <div class="bubble" onclick="window.open('https://www.411.com', '_blank')">
                             <div class="bubble-icon">📖</div>
-                            <div class="bubble-title">WHITEPAGES</div>
-                            <div class="bubble-subtitle">People Search</div>
+                            <div class="bubble-title">411.COM</div>
+                            <div class="bubble-subtitle">Phone & Address</div>
                         </div>
                     </div>
 
                     <div class="connector"></div>
 
-                    <!-- Category: Email & Breach -->
+                    <!-- Category: Email & People Search -->
                     <div class="bubble-row">
                         <div class="bubble" onclick="window.open('https://haveibeenpwned.com', '_blank')">
                             <div class="bubble-icon">🔓</div>
@@ -577,16 +699,16 @@
                             <div class="bubble-subtitle">Breach Database</div>
                         </div>
 
-                        <div class="bubble" onclick="window.open('https://hunter.io', '_blank')">
-                            <div class="bubble-icon">✉️</div>
-                            <div class="bubble-title">HUNTER.IO</div>
-                            <div class="bubble-subtitle">Email Finder</div>
+                        <div class="bubble" onclick="window.open('https://www.fastpeoplesearch.com', '_blank')">
+                            <div class="bubble-icon">👤</div>
+                            <div class="bubble-title">FAST PEOPLE</div>
+                            <div class="bubble-subtitle">Free People Search</div>
                         </div>
 
-                        <div class="bubble" onclick="window.open('https://epieos.com', '_blank')">
+                        <div class="bubble" onclick="window.open('https://thatsthem.com', '_blank')">
                             <div class="bubble-icon">🎯</div>
-                            <div class="bubble-title">EPIEOS</div>
-                            <div class="bubble-subtitle">Email OSINT</div>
+                            <div class="bubble-title">THATSTHEM</div>
+                            <div class="bubble-subtitle">Reverse Lookup</div>
                         </div>
                     </div>
 
@@ -594,68 +716,45 @@
 
                     <!-- Category: Username & Social -->
                     <div class="bubble-row">
-                        <div class="bubble" onclick="window.open('https://namechk.com', '_blank')">
-                            <div class="bubble-icon">👤</div>
-                            <div class="bubble-title">NAMECHK</div>
-                            <div class="bubble-subtitle">Username Search</div>
-                        </div>
-
-                        <div class="bubble" onclick="window.open('https://whatsmyname.app', '_blank')">
+                        <div class="bubble" onclick="window.open('https://www.social-searcher.com', '_blank')">
                             <div class="bubble-icon">🔎</div>
-                            <div class="bubble-title">WHATSMYNAME</div>
-                            <div class="bubble-subtitle">400+ Platforms</div>
+                            <div class="bubble-title">SOCIAL SEARCHER</div>
+                            <div class="bubble-subtitle">Real-Time Social</div>
                         </div>
 
-                        <div class="bubble" onclick="window.open('https://sherlock-project.github.io', '_blank')">
-                            <div class="bubble-icon">🕵️</div>
-                            <div class="bubble-title">SHERLOCK</div>
-                            <div class="bubble-subtitle">Social Hunt</div>
-                        </div>
-                    </div>
-
-                    <div class="connector"></div>
-
-                    <!-- Category: Network & IP -->
-                    <div class="bubble-row">
-                        <div class="bubble" onclick="window.open('https://www.shodan.io', '_blank')">
-                            <div class="bubble-icon">🌐</div>
-                            <div class="bubble-title">SHODAN</div>
-                            <div class="bubble-subtitle">Device Search</div>
+                        <div class="bubble" onclick="window.open('https://namechk.com', '_blank')">
+                            <div class="bubble-icon">✓</div>
+                            <div class="bubble-title">NAMECHK</div>
+                            <div class="bubble-subtitle">Username Check</div>
                         </div>
 
-                        <div class="bubble" onclick="window.open('https://www.virustotal.com', '_blank')">
-                            <div class="bubble-icon">🛡️</div>
-                            <div class="bubble-title">VIRUSTOTAL</div>
-                            <div class="bubble-subtitle">Threat Intel</div>
-                        </div>
-
-                        <div class="bubble" onclick="window.open('https://crt.sh', '_blank')">
-                            <div class="bubble-icon">🔐</div>
-                            <div class="bubble-title">CRT.SH</div>
-                            <div class="bubble-subtitle">Certificate Search</div>
+                        <div class="bubble" onclick="window.open('https://www.peekyou.com', '_blank')">
+                            <div class="bubble-icon">👁️</div>
+                            <div class="bubble-title">PEEKYOU</div>
+                            <div class="bubble-subtitle">People Search</div>
                         </div>
                     </div>
 
                     <div class="connector"></div>
 
-                    <!-- Category: Advanced Tools -->
+                    <!-- Category: Advanced Tools (Actually Useful) -->
                     <div class="bubble-row">
+                        <div class="bubble" onclick="window.open('https://www.google.com/advanced_search', '_blank')">
+                            <div class="bubble-icon">🔍</div>
+                            <div class="bubble-title">GOOGLE DORKS</div>
+                            <div class="bubble-subtitle">Advanced Search</div>
+                        </div>
+
+                        <div class="bubble" onclick="window.open('https://archive.org', '_blank')">
+                            <div class="bubble-icon">📚</div>
+                            <div class="bubble-title">WAYBACK MACHINE</div>
+                            <div class="bubble-subtitle">Website Archive</div>
+                        </div>
+
                         <div class="bubble" onclick="window.open('https://osintframework.com', '_blank')">
                             <div class="bubble-icon">🗂️</div>
                             <div class="bubble-title">OSINT FRAMEWORK</div>
                             <div class="bubble-subtitle">Tool Directory</div>
-                        </div>
-
-                        <div class="bubble" onclick="window.open('https://www.maltego.com', '_blank')">
-                            <div class="bubble-icon">🕸️</div>
-                            <div class="bubble-title">MALTEGO</div>
-                            <div class="bubble-subtitle">Link Analysis</div>
-                        </div>
-
-                        <div class="bubble" onclick="window.open('https://intelx.io', '_blank')">
-                            <div class="bubble-icon">💾</div>
-                            <div class="bubble-title">INTELLIGENCE X</div>
-                            <div class="bubble-subtitle">Archive Search</div>
                         </div>
                     </div>
                 </div>
@@ -851,6 +950,363 @@
         document.getElementById('ipInput').addEventListener('keypress', e => {
             if (e.key === 'Enter') scanIP();
         });
+
+        // EXIF Functionality
+        let currentImage = null;
+        let currentFileName = '';
+
+        document.getElementById('imageInput').addEventListener('change', handleImageUpload);
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                return showToast('INVALID FILE TYPE', 'error');
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                return showToast('FILE TOO LARGE (MAX 10MB)', 'error');
+            }
+
+            currentFileName = file.name;
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                currentImage = event.target.result;
+                displayImage(currentImage);
+                extractEXIF(file);
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function displayImage(dataUrl) {
+            document.getElementById('exifPreview').innerHTML = `
+                <div class="exif-preview">
+                    <img src="${dataUrl}" alt="Uploaded Image">
+                    <div style="margin-top: 1rem; color: var(--text-gray); font-size: 0.85rem;">
+                        ${currentFileName}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function extractEXIF(file) {
+            showLoading();
+            
+            try {
+                // Read basic file info
+                const img = new Image();
+                img.src = await readFileAsDataURL(file);
+                
+                await new Promise((resolve) => {
+                    img.onload = resolve;
+                });
+
+                const basicInfo = {
+                    'File Name': currentFileName,
+                    'File Size': formatBytes(file.size),
+                    'File Type': file.type,
+                    'Image Width': img.width + 'px',
+                    'Image Height': img.height + 'px',
+                    'Aspect Ratio': (img.width / img.height).toFixed(2),
+                    'Last Modified': new Date(file.lastModified).toLocaleString()
+                };
+
+                // Extract EXIF using EXIF.js library
+                EXIF.getData(img, function() {
+                    const allTags = EXIF.getAllTags(this);
+                    const exifData = {};
+                    const gpsData = {};
+                    const cameraData = {};
+                    
+                    // GPS Data
+                    const gpsLat = EXIF.getTag(this, 'GPSLatitude');
+                    const gpsLatRef = EXIF.getTag(this, 'GPSLatitudeRef');
+                    const gpsLon = EXIF.getTag(this, 'GPSLongitude');
+                    const gpsLonRef = EXIF.getTag(this, 'GPSLongitudeRef');
+                    
+                    if (gpsLat && gpsLon) {
+                        const lat = convertDMSToDD(gpsLat, gpsLatRef);
+                        const lon = convertDMSToDD(gpsLon, gpsLonRef);
+                        gpsData['GPS Coordinates'] = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                        gpsData['Google Maps'] = `https://www.google.com/maps?q=${lat},${lon}`;
+                        gpsData['Latitude'] = lat.toFixed(6);
+                        gpsData['Longitude'] = lon.toFixed(6);
+                    }
+                    
+                    const gpsAlt = EXIF.getTag(this, 'GPSAltitude');
+                    if (gpsAlt) gpsData['GPS Altitude'] = gpsAlt + 'm';
+                    
+                    const gpsTime = EXIF.getTag(this, 'GPSTimeStamp');
+                    const gpsDate = EXIF.getTag(this, 'GPSDateStamp');
+                    if (gpsTime && gpsDate) {
+                        gpsData['GPS Timestamp'] = `${gpsDate} ${gpsTime[0]}:${gpsTime[1]}:${gpsTime[2]}`;
+                    }
+                    
+                    // Camera Data
+                    const make = EXIF.getTag(this, 'Make');
+                    const model = EXIF.getTag(this, 'Model');
+                    if (make) cameraData['Camera Make'] = make;
+                    if (model) cameraData['Camera Model'] = model;
+                    
+                    const software = EXIF.getTag(this, 'Software');
+                    if (software) cameraData['Software'] = software;
+                    
+                    const dateTime = EXIF.getTag(this, 'DateTime');
+                    const dateTimeOrig = EXIF.getTag(this, 'DateTimeOriginal');
+                    if (dateTimeOrig) cameraData['Date Taken'] = dateTimeOrig;
+                    else if (dateTime) cameraData['Date Modified'] = dateTime;
+                    
+                    // Camera Settings
+                    const iso = EXIF.getTag(this, 'ISOSpeedRatings');
+                    const fNumber = EXIF.getTag(this, 'FNumber');
+                    const exposure = EXIF.getTag(this, 'ExposureTime');
+                    const focalLength = EXIF.getTag(this, 'FocalLength');
+                    const flash = EXIF.getTag(this, 'Flash');
+                    
+                    if (iso) exifData['ISO'] = iso;
+                    if (fNumber) exifData['F-Stop'] = 'f/' + fNumber;
+                    if (exposure) exifData['Exposure'] = exposure + 's';
+                    if (focalLength) exifData['Focal Length'] = focalLength + 'mm';
+                    if (flash !== undefined) exifData['Flash'] = flash === 0 ? 'No Flash' : 'Flash Fired';
+                    
+                    // Other metadata
+                    const orientation = EXIF.getTag(this, 'Orientation');
+                    if (orientation) exifData['Orientation'] = orientation;
+                    
+                    const copyright = EXIF.getTag(this, 'Copyright');
+                    const artist = EXIF.getTag(this, 'Artist');
+                    if (artist) exifData['Artist/Author'] = artist;
+                    if (copyright) exifData['Copyright'] = copyright;
+                    
+                    const userComment = EXIF.getTag(this, 'UserComment');
+                    if (userComment) exifData['User Comment'] = userComment;
+
+                    displayEXIFData(basicInfo, exifData, cameraData, gpsData);
+                    hideLoading();
+                });
+
+            } catch (err) {
+                hideLoading();
+                showToast('EXIF EXTRACTION FAILED: ' + err.message, 'error');
+            }
+        }
+
+        function convertDMSToDD(dms, ref) {
+            // Convert degrees, minutes, seconds to decimal degrees
+            const degrees = dms[0];
+            const minutes = dms[1];
+            const seconds = dms[2];
+            
+            let dd = degrees + minutes/60 + seconds/3600;
+            
+            if (ref === 'S' || ref === 'W') {
+                dd = dd * -1;
+            }
+            
+            return dd;
+        }
+
+        function displayEXIFData(basicInfo, exifData, cameraData, gpsData) {
+            const hasGPS = Object.keys(gpsData).length > 0;
+            const hasCamera = Object.keys(cameraData).length > 0;
+            const hasEXIF = Object.keys(exifData).length > 0;
+            const hasAnyMetadata = hasGPS || hasCamera || hasEXIF;
+            
+            let html = '';
+
+            // GPS WARNING (if found)
+            if (hasGPS) {
+                const coords = gpsData['GPS Coordinates'];
+                const mapsLink = gpsData['Google Maps'];
+                html += `
+                    <div class="exif-warning">
+                        <div class="exif-warning-title">⚠️ CRITICAL PRIVACY WARNING</div>
+                        <div style="margin-bottom: 0.5rem;">This image contains GPS coordinates revealing your EXACT LOCATION!</div>
+                        <div style="font-weight: 700; color: var(--text-white); margin: 0.5rem 0;">
+                            📍 ${coords}
+                        </div>
+                        <div>
+                            <a href="${mapsLink}" target="_blank" style="color: var(--bright); text-decoration: underline;">
+                                View Location on Google Maps
+                            </a>
+                        </div>
+                        <div style="margin-top: 0.5rem; font-size: 0.85rem;">
+                            Posting this image publicly reveals where you were when you took it (home, work, school, etc.)
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '<div class="exif-grid">';
+
+            // Basic File Info
+            html += '<div class="exif-section">';
+            html += '<div class="exif-section-title">📄 FILE INFORMATION</div>';
+            for (let [key, value] of Object.entries(basicInfo)) {
+                html += `
+                    <div class="exif-row">
+                        <div class="exif-label">${key}</div>
+                        <div class="exif-value">${value}</div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+
+            // GPS Data
+            if (hasGPS) {
+                html += '<div class="exif-section">';
+                html += '<div class="exif-section-title">📍 GPS LOCATION</div>';
+                for (let [key, value] of Object.entries(gpsData)) {
+                    if (key === 'Google Maps') {
+                        html += `
+                            <div class="exif-row">
+                                <div class="exif-label">${key}</div>
+                                <div class="exif-value">
+                                    <a href="${value}" target="_blank" style="color: var(--bright); text-decoration: underline;">
+                                        Open Map
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="exif-row">
+                                <div class="exif-label">${key}</div>
+                                <div class="exif-value" style="color: var(--red); font-weight: 700;">${value}</div>
+                            </div>
+                        `;
+                    }
+                }
+                html += '</div>';
+            }
+
+            // Camera Data
+            if (hasCamera) {
+                html += '<div class="exif-section">';
+                html += '<div class="exif-section-title">📸 CAMERA INFORMATION</div>';
+                for (let [key, value] of Object.entries(cameraData)) {
+                    html += `
+                        <div class="exif-row">
+                            <div class="exif-label">${key}</div>
+                            <div class="exif-value">${value}</div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            // EXIF Settings
+            if (hasEXIF) {
+                html += '<div class="exif-section">';
+                html += '<div class="exif-section-title">⚙️ CAMERA SETTINGS</div>';
+                for (let [key, value] of Object.entries(exifData)) {
+                    html += `
+                        <div class="exif-row">
+                            <div class="exif-label">${key}</div>
+                            <div class="exif-value">${value}</div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            // No metadata message
+            if (!hasAnyMetadata) {
+                html += '<div class="exif-section">';
+                html += '<div class="exif-section-title">📸 METADATA STATUS</div>';
+                html += `
+                    <div class="exif-row">
+                        <div class="exif-value" style="text-align: center; color: var(--bright); font-size: 1.1rem;">
+                            ✓ NO METADATA FOUND - IMAGE IS ALREADY CLEAN
+                        </div>
+                    </div>
+                `;
+                html += '</div>';
+            }
+
+            html += '</div>';
+
+            document.getElementById('exifData').innerHTML = html;
+
+            // Action buttons
+            const buttonText = hasAnyMetadata ? '[ STRIP ALL METADATA ]' : '[ RE-ENCODE IMAGE ]';
+            document.getElementById('exifActions').innerHTML = `
+                <div class="exif-actions">
+                    <button class="btn-danger" onclick="stripEXIF()">${buttonText}</button>
+                    <button onclick="resetEXIF()">[ UPLOAD NEW IMAGE ]</button>
+                </div>
+            `;
+        }
+
+        async function stripEXIF() {
+            if (!currentImage) {
+                return showToast('NO IMAGE LOADED', 'error');
+            }
+
+            showLoading();
+
+            try {
+                // Create canvas and draw image
+                const img = new Image();
+                img.src = currentImage;
+
+                await new Promise((resolve) => {
+                    img.onload = resolve;
+                });
+
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                // Convert to blob (this strips all EXIF data)
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'CLEANED_' + currentFileName.replace(/\.[^/.]+$/, '') + '.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                    hideLoading();
+                    showToast('✓ METADATA STRIPPED - IMAGE DOWNLOADED', 'success');
+                }, 'image/png', 0.95);
+
+            } catch (err) {
+                hideLoading();
+                showToast('STRIP FAILED: ' + err.message, 'error');
+            }
+        }
+
+        function resetEXIF() {
+            document.getElementById('imageInput').value = '';
+            document.getElementById('exifPreview').innerHTML = '';
+            document.getElementById('exifData').innerHTML = '';
+            document.getElementById('exifActions').innerHTML = '';
+            currentImage = null;
+            currentFileName = '';
+        }
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
